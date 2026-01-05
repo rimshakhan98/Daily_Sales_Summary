@@ -1,0 +1,5 @@
+{
+    "sales_path":"/opt/airflow/spark_job/data/sales.csv",
+    "products_path":"/opt/airflow/spark_job/data/products.csv",
+    "exchange_rates_path":"/opt/airflow/spark_job/data/exchange_rates.csv"
+}
