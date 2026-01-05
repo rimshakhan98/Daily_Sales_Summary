@@ -1,0 +1,66 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  airflow-init:
+    image: apache/airflow:2.7.2
+    container_name: airflow-init
+    depends_on:
+      - postgres
+    environment:
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__WEBSERVER__SECRET_KEY: "my-super-secret-airflow-key-123"
+    command: >
+      bash -c "
+      airflow db upgrade &&
+      airflow connections create-default-connections &&
+      airflow users create --username admin --firstname Admin --lastname User --role Admin --email admin@example.com --password admin 
+      "
+    volumes:
+      - ./dags:/opt/airflow/dags
+
+  airflow-webserver:
+    build: .
+    container_name: airflow-webserver
+    depends_on:
+      - postgres
+      - airflow-init
+    environment:
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__WEBSERVER__SECRET_KEY: "my-super-secret-airflow-key-123"
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./spark_job:/opt/airflow/spark_job
+    ports:
+      - "8080:8080"
+    command: airflow webserver
+    restart: always
+
+  airflow-scheduler:
+    build: .
+    container_name: airflow-scheduler
+    depends_on:
+      - postgres
+      - airflow-init
+    environment:
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__WEBSERVER__SECRET_KEY: "my-super-secret-airflow-key-123"
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./spark_job:/opt/airflow/spark_job
+    command: airflow scheduler
+    restart: always
+
+volumes:
+  postgres_data:
