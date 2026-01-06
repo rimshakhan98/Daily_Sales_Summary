@@ -1,5 +1,5 @@
 # Base Airflow image
-FROM apache/airflow:2.7.2-python3.9
+FROM apache/airflow:2.7.2-python3.10
 
 # ----------------------------
 # System dependencies (root)
@@ -16,7 +16,7 @@ ENV PATH=$JAVA_HOME/bin:$PATH
 # ----------------------------
 # Install Spark
 # ----------------------------
-ENV SPARK_VERSION=3.5.0
+ENV SPARK_VERSION=3.3.2
 ENV HADOOP_VERSION=3
 ENV SPARK_HOME=/opt/spark
 ENV PATH=$SPARK_HOME/bin:$PATH
@@ -32,14 +32,6 @@ RUN curl -fL \
 # Airflow directories
 # ----------------------------
 RUN mkdir -p /opt/airflow/{dags,logs,plugins,include,data,spark_job/jars}
-
-# ----------------------------
-# Delta Lake jars (FIXED PATH)
-# ----------------------------
-RUN curl -fL -o /opt/airflow/spark_job/jars/delta-core_2.12-2.3.0.jar \
-      https://repo1.maven.org/maven2/io/delta/delta-core_2.12/2.3.0/delta-core_2.12-2.3.0.jar && \
-    curl -fL -o /opt/airflow/spark_job/jars/delta-storage-2.3.0.jar \
-      https://repo1.maven.org/maven2/io/delta/delta-storage/2.3.0/delta-storage-2.3.0.jar
 
 # ----------------------------
 # Copy project files
